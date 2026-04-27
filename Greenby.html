@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Greenby — Le copilote IA de la durabilité | Bilan carbone, CSRD, ESG</title>
+<meta name="description" content="Greenby, la plateforme IA suisse qui mesure votre bilan carbone (Scope 1-2-3), pilote votre conformité CSRD et vous connecte aux meilleures solutions durables. Réduisez vos coûts, accélérez votre impact." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<style>
+/* ---------- TOKENS ---------- */
+:root{
+  /* Base: deep charcoal with subtle green undertone */
+  --bg-0:  oklch(0.14 0.01 160);
+  --bg-1:  oklch(0.17 0.012 160);
+  --bg-2:  oklch(0.21 0.014 160);
+  --line:  oklch(0.28 0.012 160 / 0.5);
+  --line-2:oklch(0.35 0.015 160 / 0.35);
+
+  --fg-0:  oklch(0.98 0.005 160);
+  --fg-1:  oklch(0.86 0.008 160);
+  --fg-2:  oklch(0.64 0.012 160);
+  --fg-3:  oklch(0.48 0.012 160);
+
+  /* Accent: greenby.earth vivid green — lime/emerald */
+  --g-deep: oklch(0.58 0.19 145);
+  --g-mid:  oklch(0.78 0.22 140);
+  --g-light:oklch(0.90 0.20 135);
+  --g-glow: oklch(0.82 0.24 140);
+
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+
+  --ease: cubic-bezier(.2,.7,.1,1);
+  --max: 1240px;
+
+  --shadow-soft: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 30px 60px -20px oklch(0 0 0 / 0.5);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-0);color:var(--fg-0);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-feature-settings:"ss01","cv11";-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+body{min-height:100vh;line-height:1.45}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{max-width:100%;display:block}
+::selection{background:var(--g-deep);color:#000}
+
+/* Ambient grain + vignette */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:
+    radial-gradient(120% 80% at 50% -10%, oklch(0.48 0.16 140 / 0.28), transparent 60%),
+    radial-gradient(80% 60% at 100% 110%, oklch(0.58 0.19 145 / 0.18), transparent 60%),
+    radial-gradient(60% 40% at 0% 100%, oklch(0.46 0.14 140 / 0.14), transparent 60%);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Layout */
+.wrap{max-width:var(--max);margin:0 auto;padding:0 28px;position:relative;z-index:3}
+section{position:relative;z-index:3}
+
+/* ---------- NAV ---------- */
+.nav{position:fixed;top:18px;left:0;right:0;z-index:50;display:flex;justify-content:center;pointer-events:none}
+.nav-inner{
+  pointer-events:auto;display:flex;align-items:center;gap:28px;
+  padding:10px 12px 10px 20px;
+  background:oklch(0.14 0.01 160 / 0.55);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  border:1px solid var(--line);
+  border-radius:100px;
+  box-shadow:var(--shadow-soft);
+}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:15px}
+.logo-mark{width:28px;height:28px;display:grid;place-items:center;color:var(--g-light);filter:drop-shadow(0 4px 12px oklch(0.58 0.19 145 /.45))}
+.logo-mark svg{width:100%;height:100%}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 14px;font-size:13.5px;color:var(--fg-1);border-radius:100px;transition:all .2s var(--ease)}
+.nav-links a:hover{color:var(--fg-0);background:oklch(1 0 0 /.05)}
+.nav-cta{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:100px;font-size:13.5px;font-weight:500;transition:all .25s var(--ease);white-space:nowrap}
+.btn-ghost{color:var(--fg-1)}
+.btn-ghost:hover{color:var(--fg-0);background:oklch(1 0 0 /.06)}
+.btn-primary{
+  color:#001a10;background:linear-gradient(180deg, var(--g-light), var(--g-mid));
+  box-shadow:0 0 0 1px oklch(0.90 0.20 140 /.6) inset, 0 6px 20px -4px oklch(0.78 0.22 140 /.5), 0 1px 0 oklch(1 0 0 /.4) inset;
+  font-weight:600;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 0 1px oklch(0.90 0.20 140 /.7) inset, 0 10px 30px -6px oklch(0.78 0.22 140 /.6), 0 1px 0 oklch(1 0 0 /.5) inset}
+.btn-outline{color:var(--fg-0);border:1px solid var(--line-2);background:oklch(1 0 0 /.02)}
+.btn-outline:hover{border-color:var(--g-mid);background:oklch(0.58 0.19 145 /.1)}
+.btn .arr{transition:transform .25s var(--ease)}
+.btn:hover .arr{transform:translateX(3px)}
+
+.lang{font-size:12px;color:var(--fg-2);padding:8px 10px;border-left:1px solid var(--line);margin-left:6px}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:130px 0 80px;overflow:hidden}
+#globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+.hero-bg-fade{position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:
+    linear-gradient(180deg, transparent 60%, var(--bg-0) 100%),
+    radial-gradient(60% 70% at 15% 50%, oklch(0.14 0.01 160 /.6), transparent 60%);
+}
+.hero .wrap{z-index:4}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:6px 12px 6px 8px;border-radius:100px;
+  background:oklch(1 0 0 /.04);border:1px solid var(--line);
+  font-size:12.5px;color:var(--fg-1);font-family:'Geist Mono',monospace;font-weight:400;letter-spacing:.02em;
+  backdrop-filter:blur(10px);
+}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--g-glow);box-shadow:0 0 12px var(--g-glow);animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+h1.hero-title{
+  margin-top:22px;
+  font-size:clamp(44px, 6vw, 78px);
+  line-height:.98;letter-spacing:-.035em;font-weight:500;
+  font-family:'Geist',sans-serif;
+}
+h1.hero-title em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;
+  background:linear-gradient(180deg, var(--g-light) 10%, var(--g-mid) 70%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  letter-spacing:-.02em;
+}
+.hero-sub{margin-top:22px;font-size:17px;color:var(--fg-1);max-width:540px;line-height:1.55}
+.hero-cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hero-meta{margin-top:28px;display:flex;gap:28px;flex-wrap:wrap;color:var(--fg-2);font-size:13px}
+.hero-meta .it{display:flex;align-items:center;gap:8px}
+.check{width:14px;height:14px;border-radius:50%;background:oklch(0.42 0.12 140);display:grid;place-items:center;color:var(--g-light)}
+
+/* logos strip */
+.trust{margin-top:58px;padding-top:26px;border-top:1px solid var(--line)}
+.trust-label{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--fg-3);letter-spacing:.08em;text-transform:uppercase}
+.trust-logos{margin-top:18px;display:grid;grid-template-columns:repeat(6,1fr);gap:24px;align-items:center;opacity:.75}
+.logo-placeholder{height:24px;display:flex;align-items:center;justify-content:center;color:var(--fg-2);font-size:13px;letter-spacing:-.01em;font-weight:500;border:1px dashed var(--line-2);border-radius:6px;padding:4px 10px;font-family:'Geist Mono',monospace;font-size:11px;white-space:nowrap}
+.eco-strip{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 28px;border:1px solid var(--line);border-radius:var(--radius-lg);background:linear-gradient(180deg, var(--bg-1), oklch(0.15 0.02 160))}
+.eco-item{display:flex;flex-direction:column;gap:4px;min-width:0}
+.eco-n{font-size:26px;font-weight:500;letter-spacing:-.02em;color:var(--g-light);line-height:1;font-variant-numeric:tabular-nums}
+.eco-l{font-size:12.5px;color:var(--fg-2);line-height:1.35}
+.eco-sep{width:1px;height:34px;background:var(--line)}
+
+/* ---------- SECTION SHELL ---------- */
+.sec{padding:110px 0;position:relative}
+.sec-head{max-width:780px;margin:0 auto 56px;text-align:center}
+.sec-eyebrow{display:inline-block;font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--g-light);letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border:1px solid oklch(0.58 0.19 145 /.3);border-radius:100px;background:oklch(0.58 0.19 145 /.08)}
+.sec-title{margin-top:18px;font-size:clamp(34px, 4.2vw, 54px);line-height:1;letter-spacing:-.032em;font-weight:500}
+.sec-title em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--g-light)}
+.sec-sub{margin-top:18px;color:var(--fg-1);font-size:17px;line-height:1.55;max-width:640px;margin-left:auto;margin-right:auto}
+
+/* ---------- PROBLEM ---------- */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+.prob-card{padding:26px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);position:relative;overflow:hidden}
+.prob-card::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 80% at 100% 0%, oklch(0.58 0.19 145 /.08), transparent 60%);pointer-events:none}
+.prob-num{font-family:'Instrument Serif',serif;font-style:italic;color:var(--fg-3);font-size:24px}
+.prob-title{margin-top:10px;font-size:19px;font-weight:500;letter-spacing:-.01em}
+.prob-desc{margin-top:10px;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+
+/* ---------- AGENTS (3-column big feature) ---------- */
+.agents{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+.agent{
+  border:1px solid var(--line);border-radius:var(--radius-lg);padding:28px;
+  background:linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  position:relative;overflow:hidden;min-height:460px;display:flex;flex-direction:column;
+  transition:all .4s var(--ease);
+}
+.agent:hover{border-color:oklch(0.58 0.19 145 /.5);transform:translateY(-4px)}
+.agent-visual{height:200px;margin:-28px -28px 22px;position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:
+  radial-gradient(ellipse at 50% 120%, oklch(0.58 0.19 145 /.35), transparent 60%),
+  var(--bg-2)}
+.agent-tag{display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--g-light);letter-spacing:.08em;text-transform:uppercase}
+.agent-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--g-glow);box-shadow:0 0 8px var(--g-glow)}
+.agent-title{margin-top:12px;font-size:26px;font-weight:500;letter-spacing:-.02em}
+.agent-desc{margin-top:12px;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+.agent-list{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--fg-1)}
+.agent-list li{list-style:none;display:flex;align-items:center;gap:10px}
+.agent-list li::before{content:"";width:14px;height:14px;flex:0 0 auto;border-radius:50%;background:oklch(0.58 0.19 145 /.25);display:inline-block;position:relative}
+
+/* Visual: Agent 1 – chat */
+.vis-chat{padding:22px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+.bubble{padding:9px 13px;border-radius:14px;font-size:12px;max-width:80%;line-height:1.45}
+.bubble.u{background:oklch(1 0 0/.05);color:var(--fg-1);border:1px solid var(--line);align-self:flex-end;border-bottom-right-radius:4px}
+.bubble.a{background:oklch(0.58 0.19 145 /.18);color:var(--fg-0);border:1px solid oklch(0.58 0.19 145 /.35);border-bottom-left-radius:4px}
+.bubble .typ{display:inline-flex;gap:3px}
+.bubble .typ i{width:4px;height:4px;border-radius:50%;background:var(--g-light);display:inline-block;animation:bl 1.2s infinite}
+.bubble .typ i:nth-child(2){animation-delay:.2s}
+.bubble .typ i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* Visual: Agent 2 – chart */
+.vis-chart{padding:22px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px}
+.scope-row{display:flex;align-items:center;gap:10px;font-size:11.5px;font-family:'Geist Mono',monospace;color:var(--fg-2)}
+.scope-row .lbl{width:50px;flex:0 0 auto}
+.scope-row .bar{flex:1;height:8px;border-radius:100px;background:oklch(1 0 0/.06);overflow:hidden;position:relative}
+.scope-row .bar i{position:absolute;inset:0;border-radius:100px;background:linear-gradient(90deg, var(--g-deep), var(--g-light));transform-origin:left;animation:grow 1.6s var(--ease) forwards}
+@keyframes grow{from{transform:scaleX(0)}}
+.scope-row .val{color:var(--fg-0);font-variant-numeric:tabular-nums}
+
+/* Visual: Agent 3 – nodes */
+.vis-network{position:relative}
+.node{position:absolute;width:34px;height:34px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line-2);display:grid;place-items:center;font-size:11px;font-family:'Geist Mono',monospace;color:var(--fg-1)}
+.node.c{background:radial-gradient(circle at 30% 30%, var(--g-light), var(--g-deep));border-color:var(--g-mid);color:#001a10;font-weight:600;width:44px;height:44px;box-shadow:0 0 24px oklch(0.68 0.22 140 /.5)}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px;position:relative}
+.step{padding:26px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);position:relative}
+.step-num{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--g-light);letter-spacing:.1em}
+.step-title{margin-top:10px;font-size:18px;font-weight:500;letter-spacing:-.01em}
+.step-desc{margin-top:8px;color:var(--fg-2);font-size:13.5px;line-height:1.55}
+
+/* ---------- ROI / METRICS ---------- */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+.metric{padding:34px 28px;border:1px solid var(--line);border-radius:var(--radius-lg);background:linear-gradient(180deg, var(--bg-1), oklch(0.15 0.02 160));position:relative;overflow:hidden}
+.metric::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--g-glow),transparent);opacity:.5}
+.metric-num{font-size:72px;font-weight:500;letter-spacing:-.04em;line-height:1;
+  background:linear-gradient(180deg,var(--fg-0) 30%, var(--g-mid));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+.metric-num .u{font-size:32px;vertical-align:top;margin-left:4px;color:var(--g-light);-webkit-text-fill-color:var(--g-light)}
+.metric-label{margin-top:14px;font-size:16px;font-weight:500;letter-spacing:-.01em}
+.metric-desc{margin-top:8px;color:var(--fg-2);font-size:13.5px;line-height:1.55}
+
+/* ---------- COMPARISON ---------- */
+.vs{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:14px;border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-1)}
+.vs-col{padding:32px}
+.vs-col + .vs-col{border-left:1px solid var(--line)}
+.vs-col.green{background:radial-gradient(120% 100% at 50% 0%, oklch(0.58 0.19 145 /.15), transparent 60%)}
+.vs-head{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--fg-2);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+.vs-head.gb{color:var(--g-light)}
+.vs-col h3{margin-top:10px;font-size:24px;font-weight:500;letter-spacing:-.02em}
+.vs-list{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.vs-item{display:flex;gap:12px;font-size:14.5px;color:var(--fg-1);line-height:1.5;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.vs-item:last-child{border-bottom:0}
+.ic{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:12px;margin-top:1px}
+.ic.x{background:oklch(0.25 0.04 30);color:oklch(0.7 0.15 30)}
+.ic.c{background:oklch(0.42 0.14 140);color:var(--g-light)}
+
+/* ---------- ICP ---------- */
+.icps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px}
+.icp{padding:26px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);transition:all .3s var(--ease)}
+.icp:hover{border-color:var(--g-mid);transform:translateY(-3px);background:oklch(0.17 0.02 160)}
+.icp-ic{width:34px;height:34px;border-radius:10px;background:oklch(0.58 0.19 145 /.12);border:1px solid oklch(0.58 0.19 145 /.3);display:grid;place-items:center;color:var(--g-light)}
+.icp-title{margin-top:16px;font-size:16px;font-weight:500;letter-spacing:-.01em}
+.icp-desc{margin-top:8px;color:var(--fg-2);font-size:13.5px;line-height:1.55}
+
+/* ---------- TESTIMONIAL ---------- */
+.testi{margin-top:80px;display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.testi-main{padding:48px;border:1px solid var(--line);border-radius:var(--radius-lg);background:linear-gradient(180deg, var(--bg-1), var(--bg-0));position:relative;overflow:hidden}
+.testi-main::before{content:"";position:absolute;top:-30px;right:-30px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,oklch(0.58 0.19 145 /.25),transparent 70%)}
+.quote{font-family:'Instrument Serif',serif;font-size:32px;line-height:1.2;letter-spacing:-.02em;font-style:italic;color:var(--fg-0);max-width:90%}
+.testi-foot{margin-top:32px;display:flex;align-items:center;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg, var(--g-mid), var(--g-deep));border:1px solid var(--g-mid)}
+.testi-name{font-size:14.5px;font-weight:500}
+.testi-role{font-size:13px;color:var(--fg-2)}
+.stat-stack{display:grid;gap:14px}
+.stat-card{padding:28px;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--bg-1);display:flex;flex-direction:column;justify-content:center}
+.stat-n{font-size:48px;font-weight:500;letter-spacing:-.03em;color:var(--g-light);line-height:1}
+.stat-l{margin-top:8px;font-size:14px;color:var(--fg-1)}
+
+/* ---------- FAQ ---------- */
+.faq-grid{max-width:820px;margin:40px auto 0;display:flex;flex-direction:column;gap:10px}
+.faq details{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);overflow:hidden;transition:all .25s var(--ease)}
+.faq details[open]{background:var(--bg-2);border-color:oklch(0.58 0.19 145 /.35)}
+.faq summary{padding:20px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:16px;font-weight:500;letter-spacing:-.01em;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .pls{width:18px;height:18px;position:relative;flex:0 0 auto;color:var(--g-light);transition:transform .3s var(--ease)}
+.faq summary .pls::before,.faq summary .pls::after{content:"";position:absolute;background:currentColor}
+.faq summary .pls::before{left:50%;top:0;bottom:0;width:1.5px;transform:translateX(-50%)}
+.faq summary .pls::after{top:50%;left:0;right:0;height:1.5px;transform:translateY(-50%)}
+.faq details[open] summary .pls{transform:rotate(45deg)}
+.faq p{padding:0 24px 22px;color:var(--fg-2);font-size:14.5px;line-height:1.65;max-width:680px}
+
+/* ---------- FINAL CTA ---------- */
+.final{padding:120px 0;position:relative;overflow:hidden}
+.final-box{
+  position:relative;
+  padding:80px 60px;
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:
+    radial-gradient(80% 100% at 50% 0%, oklch(0.58 0.19 145 /.25), transparent 70%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  text-align:center;overflow:hidden;
+}
+.final-box::before{content:"";position:absolute;left:50%;top:0;width:60%;height:1px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,var(--g-glow),transparent)}
+.final h2{font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-.035em;font-weight:500}
+.final h2 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--g-light)}
+.final p{margin:18px auto 0;max-width:560px;color:var(--fg-1);font-size:17px}
+.final .hero-cta{justify-content:center;margin-top:36px}
+.final-orb{position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle at 30% 30%, var(--g-light), var(--g-deep) 70%, transparent);filter:blur(30px);opacity:.35;bottom:-180px;left:50%;transform:translateX(-50%)}
+
+/* ---------- FOOTER ---------- */
+footer{padding:60px 0 40px;border-top:1px solid var(--line);margin-top:40px;color:var(--fg-2);font-size:13.5px}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px}
+.foot-col h4{font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);margin-bottom:16px;font-weight:500}
+.foot-col a{display:block;color:var(--fg-1);padding:5px 0}
+.foot-col a:hover{color:var(--g-light)}
+.foot-bar{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;color:var(--fg-3);font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.04em}
+.swiss-pill{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--line);border-radius:100px;color:var(--fg-1)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .9s var(--ease), transform .9s var(--ease)}
+.rv.on{opacity:1;transform:none}
+
+/* Tweaks panel */
+.tweaks{position:fixed;right:16px;bottom:16px;z-index:80;display:none;width:280px;padding:16px;border:1px solid var(--line);border-radius:16px;background:oklch(0.14 0.01 160 /.85);backdrop-filter:blur(14px);box-shadow:0 20px 60px -10px oklch(0 0 0 /.6);color:var(--fg-0);font-size:13px}
+.tweaks.on{display:block}
+.tweaks h5{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);margin-bottom:12px;font-weight:500}
+.tweak-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.tweaks input[type=range]{width:140px}
+.tweaks input[type=checkbox]{accent-color:var(--g-mid)}
+
+/* Responsive */
+@media (max-width: 960px){
+  .nav-links{display:none}
+  .hero-grid{grid-template-columns:1fr}
+  .hero{padding:120px 0 40px;min-height:auto}
+  #globe-canvas{height:60vh;top:auto;bottom:-10vh;opacity:.6}
+  .problem-grid,.agents,.steps,.metrics,.icps,.foot-grid,.testi{grid-template-columns:1fr}
+  .vs{grid-template-columns:1fr}
+  .vs-col+.vs-col{border-left:0;border-top:1px solid var(--line)}
+  .trust-logos{grid-template-columns:repeat(3,1fr);gap:14px}
+  .final-box{padding:50px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo" aria-label="Greenby">
+      <span class="logo-mark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222 148" fill="currentColor" aria-hidden="true">
+          <path d="M110.375,137.927c-10.739,6.154-23.191,9.659-36.457,9.659C33.243,147.586.25,114.593.25,73.918S33.243.25,73.918.25c8.437,0,16.527,1.406,24.067,4.015v.02c.143.835.224,5.38-7.886,23.904-3.138,7.153-7.5,16.384-13.552,28.285-.244.469-.469.958-.693,1.427-25.187,51.985,31.199,78.518,34.521,80.026Z" opacity=".85"/>
+          <path d="M221.397,74.061c0,40.696-32.972,73.668-73.668,73.668-13.429,0-26.023-3.607-36.864-9.883,3.974-1.997,42.815-22.62,42.081-67.371-.55-32.055-25.738-51.191-41.837-60.137-.061-.041-.122-.081-.163-.102C121.766,3.979,134.34.393,147.728.393c40.696,0,73.668,32.993,73.668,73.668Z" opacity=".95"/>
+          <path d="M152.945,70.474c.734,44.751-38.108,65.374-42.081,67.371-.102.061-.204.122-.326.183-3.322-1.508-59.709-28.041-34.521-80.026.224-.469.449-.958.693-1.427,6.052-11.901,10.414-21.132,13.552-28.285,8.111-18.524,8.029-23.068,7.886-23.904,1.426.469,2.832,1.019,4.218,1.589.448.204.917.428,1.406.652.407.183.815.387,1.263.611.326.163.632.306.978.489.652.326,1.366.693,2.079,1.06.367.204.734.387,1.121.591.367.204.754.428,1.141.632.041.02.101.061.163.102,16.099,8.946,41.287,28.082,41.837,60.137Z" fill="#fff" opacity=".6"/>
+        </svg>
+      </span>
+    </a>
+    <div class="nav-links">
+      <a href="#agents">Plateforme</a>
+      <a href="#how">Fonctionnement</a>
+      <a href="#roi">ROI</a>
+      <a href="#who">Pour qui</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <span class="lang">FR</span>
+      <a class="btn btn-ghost" href="#demo">Se connecter</a>
+      <a class="btn btn-primary" href="#demo">Réserver une démo
+        <svg class="arr" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" data-screen-label="01 Hero">
+  <canvas id="globe-canvas"></canvas>
+  <div class="hero-bg-fade"></div>
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow rv">
+          <span class="dot"></span>
+          Made in Switzerland · L'écosystème IA de la durabilité
+        </span>
+        <h1 class="hero-title rv">
+          La durabilité,<br/>enfin <em>simple</em> & <em>rentable</em>.
+        </h1>
+        <p class="hero-sub rv">
+          Greenby identifie vos gisements d'économies d'énergie et de coûts, simplifie votre bilan carbone Scope 1-2-3 — supply chain incluse — et vous connecte aux innovations durables, en Suisse comme à l'international, pour passer à l'implémentation sans consulting cher ni logiciel complexe.
+        </p>
+        <div class="hero-cta rv">
+          <a class="btn btn-primary" href="#demo" style="padding:14px 22px;font-size:15px">
+            Réserver une démo
+            <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a class="btn btn-outline" href="#agents" style="padding:14px 22px;font-size:15px">
+            Voir la plateforme
+          </a>
+        </div>
+        <div class="hero-meta rv">
+          <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Bilan carbone Scope 1-2-3</span>
+          <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Supply chain maîtrisée</span>
+          <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Écosystème global</span>
+          <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Hébergé en Suisse</span>
+        </div>
+      </div>
+      <div></div>
+    </div>
+
+    <div class="trust rv">
+      <div class="trust-label">L'écosystème Greenby &nbsp;·&nbsp; Suisse &amp; International</div>
+      <div class="eco-strip">
+        <div class="eco-item"><span class="eco-n">+400</span><span class="eco-l">solutions durables référencées</span></div>
+        <div class="eco-sep"></div>
+        <div class="eco-item"><span class="eco-n">27</span><span class="eco-l">pays couverts par notre matching</span></div>
+        <div class="eco-sep"></div>
+        <div class="eco-item"><span class="eco-n">Scope 3</span><span class="eco-l">supply chain cartographiée</span></div>
+        <div class="eco-sep"></div>
+        <div class="eco-item"><span class="eco-n">-60%</span><span class="eco-l">de coûts vs consulting classique</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="sec" data-screen-label="02 Problem" id="problem">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">Le constat</span>
+      <h2 class="sec-title">Piloter sa durabilité,<br/>c'est choisir entre <em>cher</em> ou <em>compliqué</em>.</h2>
+      <p class="sec-sub">Les consultings ESG coûtent une fortune. Les logiciels du marché sont pensés pour des experts à plein temps. Pendant ce temps, vos gisements d'économies restent invisibles et les solutions qui feraient la différence, hors de portée.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="prob-card rv">
+        <div class="prob-num">01</div>
+        <div class="prob-title">Consulting ESG : cher, lent, dépendant</div>
+        <p class="prob-desc">20 à 40k€ par audit, 4 à 6 mois de mission, un livrable qui dort sur une étagère. Greenby automatise 80% du travail — votre équipe garde la main, en continu.</p>
+      </div>
+      <div class="prob-card rv">
+        <div class="prob-num">02</div>
+        <div class="prob-title">Logiciels RSE : trop complexes à utiliser</div>
+        <p class="prob-desc">Formations, certifications, interface à 300 champs. Avec Greenby, vous discutez avec une IA : elle collecte, calcule, propose. Vous validez.</p>
+      </div>
+      <div class="prob-card rv">
+        <div class="prob-num">03</div>
+        <div class="prob-title">Scope 3 &amp; supply chain : angle mort</div>
+        <p class="prob-desc">70% de vos émissions viennent de vos fournisseurs. Notre IA cartographie votre chaîne de valeur, collecte automatiquement, et vous rend la maîtrise sur votre supply chain.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTS -->
+<section class="sec" data-screen-label="03 Agents" id="agents">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">La plateforme</span>
+      <h2 class="sec-title">3 agents IA.<br/>Une seule <em>toolbox</em>.</h2>
+      <p class="sec-sub">Chacun est expert dans son domaine. Ensemble, ils remplacent votre stack RSE : tableurs, consultants, annuaires de solutions.</p>
+    </div>
+
+    <div class="agents">
+      <!-- Agent 1 -->
+      <div class="agent rv">
+        <div class="agent-visual">
+          <div class="vis-chat">
+            <div class="bubble u">Comment préparer mon premier rapport CSRD ?</div>
+            <div class="bubble a">Je commence par la double matérialité. 4 axes à analyser selon ESRS…</div>
+            <div class="bubble a" style="max-width:40%"><span class="typ"><i></i><i></i><i></i></span></div>
+          </div>
+        </div>
+        <span class="agent-tag">Agent 01 · Advisor</span>
+        <h3 class="agent-title">Conseiller RSE</h3>
+        <p class="agent-desc">Un expert CSRD, ESG et réglementation suisse disponible 24/7. Répond, rédige, contextualise — branché sur vos données.</p>
+        <ul class="agent-list">
+          <li>Veille CSRD, ESRS, LClim</li>
+          <li>Stratégie climat & trajectoire SBTi</li>
+          <li>Rapports et réponses EcoVadis</li>
+        </ul>
+      </div>
+
+      <!-- Agent 2 -->
+      <div class="agent rv">
+        <div class="agent-visual">
+          <div class="vis-chart">
+            <div class="scope-row"><span class="lbl">SCOPE 1</span><span class="bar"><i style="animation-delay:.1s;transform:scaleX(.28)"></i></span><span class="val">28%</span></div>
+            <div class="scope-row"><span class="lbl">SCOPE 2</span><span class="bar"><i style="animation-delay:.3s;transform:scaleX(.18)"></i></span><span class="val">18%</span></div>
+            <div class="scope-row"><span class="lbl">SCOPE 3</span><span class="bar"><i style="animation-delay:.5s;transform:scaleX(.54)"></i></span><span class="val">54%</span></div>
+            <div class="scope-row" style="margin-top:6px;padding-top:10px;border-top:1px solid var(--line)"><span class="lbl" style="color:var(--g-light)">TOTAL</span><span style="flex:1"></span><span class="val" style="color:var(--g-light)">1 847 tCO₂e</span></div>
+          </div>
+        </div>
+        <span class="agent-tag">Agent 02 · Tracker</span>
+        <h3 class="agent-title">Tracker CO₂</h3>
+        <p class="agent-desc">Bilan carbone Scope 1-2-3 automatisé. Import comptable, matching fournisseurs, facteurs d'émission ADEME à jour.</p>
+        <ul class="agent-list">
+          <li>GHG Protocol · ISO 14064</li>
+          <li>Collecte automatisée fournisseurs</li>
+          <li>Dashboard & export auditeur</li>
+        </ul>
+      </div>
+
+      <!-- Agent 3 -->
+      <div class="agent rv">
+        <div class="agent-visual">
+          <svg class="vis-network" viewBox="0 0 320 200" width="100%" height="100%">
+            <defs>
+              <radialGradient id="ndg" cx="50%" cy="50%"><stop offset="0%" stop-color="oklch(0.90 0.20 135)"/><stop offset="100%" stop-color="oklch(0.58 0.19 145)"/></radialGradient>
+            </defs>
+            <g stroke="oklch(0.58 0.19 145 / .45)" stroke-width="1" fill="none">
+              <line x1="160" y1="100" x2="60" y2="50"><animate attributeName="stroke-dasharray" values="0,200;200,0" dur="3s" repeatCount="indefinite"/></line>
+              <line x1="160" y1="100" x2="270" y2="40"/>
+              <line x1="160" y1="100" x2="50" y2="150"/>
+              <line x1="160" y1="100" x2="260" y2="160"/>
+              <line x1="160" y1="100" x2="160" y2="30"/>
+              <line x1="160" y1="100" x2="160" y2="180"/>
+            </g>
+            <circle cx="60" cy="50" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="270" cy="40" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="50" cy="150" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="260" cy="160" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="160" cy="30" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="160" cy="180" r="16" fill="oklch(0.21 0.014 160)" stroke="oklch(0.35 0.015 160)"/>
+            <circle cx="160" cy="100" r="22" fill="url(#ndg)"/>
+            <circle cx="160" cy="100" r="32" fill="none" stroke="oklch(0.78 0.22 140 /.4)"><animate attributeName="r" values="22;40;22" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0;1" dur="2.5s" repeatCount="indefinite"/></circle>
+          </svg>
+        </div>
+        <span class="agent-tag">Agent 03 · Networker</span>
+        <h3 class="agent-title">Networker</h3>
+        <p class="agent-desc">Matchmaking entre vos priorités carbone et les solutions durables qui fonctionnent : énergie, mobilité, circularité, IT green.</p>
+        <ul class="agent-list">
+          <li>+400 solutions vérifiées</li>
+          <li>Score de compatibilité IA</li>
+          <li>Business cases chiffrés</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" data-screen-label="04 How" id="how">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">Comment ça marche</span>
+      <h2 class="sec-title">De l'onboarding au reporting,<br/>en <em>4 étapes</em>.</h2>
+    </div>
+    <div class="steps">
+      <div class="step rv">
+        <div class="step-num">ÉTAPE 01</div>
+        <h4 class="step-title">Connectez vos données</h4>
+        <p class="step-desc">Comptabilité, facturation, HR, flotte. Connecteurs natifs ou import CSV. Chiffré, hébergé en Suisse.</p>
+      </div>
+      <div class="step rv">
+        <div class="step-num">ÉTAPE 02</div>
+        <h4 class="step-title">L'IA calcule & qualifie</h4>
+        <p class="step-desc">Mapping automatique avec les facteurs d'émission. Vous validez, les agents signalent les zones d'incertitude.</p>
+      </div>
+      <div class="step rv">
+        <div class="step-num">ÉTAPE 03</div>
+        <h4 class="step-title">Priorisez vos actions</h4>
+        <p class="step-desc">Greenby classe vos postes d'émission par impact × coût × faisabilité. Vous savez où agir en premier.</p>
+      </div>
+      <div class="step rv">
+        <div class="step-num">ÉTAPE 04</div>
+        <h4 class="step-title">Activez & mesurez</h4>
+        <p class="step-desc">Matching avec les bonnes solutions, mise en relation, suivi de la réduction effective. Rapport CSRD exportable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROI / METRICS -->
+<section class="sec" data-screen-label="05 ROI" id="roi">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">L'impact</span>
+      <h2 class="sec-title">Doublez le ROI<br/>de vos projets <em>climat</em>.</h2>
+      <p class="sec-sub">Des métriques mesurées sur notre cohorte pilote de PME et grandes entreprises suisses et européennes.</p>
+    </div>
+    <div class="metrics">
+      <div class="metric rv">
+        <div class="metric-num" data-target="82">0<span class="u">%</span></div>
+        <div class="metric-label">de temps gagné</div>
+        <p class="metric-desc">Sur le bilan carbone et la production de vos rapports ESG. Fini les tableurs partagés.</p>
+      </div>
+      <div class="metric rv">
+        <div class="metric-num" data-target="60">0<span class="u">%</span></div>
+        <div class="metric-label">de coûts en moins</div>
+        <p class="metric-desc">Face à un audit + consulting ESG traditionnel. Pas de jour-homme, pas de mission en régie.</p>
+      </div>
+      <div class="metric rv">
+        <div class="metric-num" data-target="3" data-prefix="×">0</div>
+        <div class="metric-label">fois plus précis</div>
+        <p class="metric-desc">Sur la priorisation de vos actions, grâce au croisement données internes + benchmarks sectoriels.</p>
+      </div>
+    </div>
+
+    <!-- testimonial -->
+    <div class="testi">
+      <div class="testi-main rv">
+        <div class="quote">« On a remplacé 4 mois de cabinet de conseil par 3 semaines avec Greenby. Et cette fois, l'équipe comprend vraiment d'où viennent nos émissions. »</div>
+        <div class="testi-foot">
+          <div class="avatar"></div>
+          <div>
+            <div class="testi-name">Camille R.</div>
+            <div class="testi-role">CSR Manager · Groupe industriel suisse · 240 collab.</div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-stack">
+        <div class="stat-card rv">
+          <div class="stat-n">1 847<span style="font-size:24px;color:var(--fg-2)"> tCO₂e</span></div>
+          <div class="stat-l">Cartographiés en 21 jours, Scope 1-2-3 inclus</div>
+        </div>
+        <div class="stat-card rv">
+          <div class="stat-n">-28%</div>
+          <div class="stat-l">De trajectoire de réduction validée sur 3 ans</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VS -->
+<section class="sec" data-screen-label="06 VS">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">Différence</span>
+      <h2 class="sec-title">Pourquoi pas<br/>les <em>outils classiques</em> ?</h2>
+    </div>
+    <div class="vs rv">
+      <div class="vs-col">
+        <div class="vs-head">Les alternatives</div>
+        <h3>Consulting cher ou logiciel trop complexe.</h3>
+        <div class="vs-list">
+          <div class="vs-item"><span class="ic x">✕</span>Consulting ESG à 20–40k€ par audit, dépendance continue</div>
+          <div class="vs-item"><span class="ic x">✕</span>Logiciels RSE pensés pour experts, semaines de formation</div>
+          <div class="vs-item"><span class="ic x">✕</span>Scope 3 incomplet, fournisseurs relancés à la main</div>
+          <div class="vs-item"><span class="ic x">✕</span>Aucune mise en relation avec les solutions qui réduisent vraiment</div>
+          <div class="vs-item"><span class="ic x">✕</span>Un livrable PDF, pas une dynamique d'implémentation</div>
+          <div class="vs-item"><span class="ic x">✕</span>Pas de vision économies d'énergie &amp; coûts concrètes</div>
+        </div>
+      </div>
+      <div class="vs-col green">
+        <div class="vs-head gb">Avec Greenby</div>
+        <h3>Une plateforme. Du diagnostic à l'implémentation.</h3>
+        <div class="vs-list">
+          <div class="vs-item"><span class="ic c">✓</span>Simple à utiliser : l'IA fait 80% du travail, vous gardez la décision</div>
+          <div class="vs-item"><span class="ic c">✓</span>Bilan carbone Scope 1-2-3 automatisé, supply chain incluse</div>
+          <div class="vs-item"><span class="ic c">✓</span>Identifie en un clic vos gisements d'économies d'énergie &amp; coûts</div>
+          <div class="vs-item"><span class="ic c">✓</span>Matching avec l'innovation durable, Suisse &amp; international</div>
+          <div class="vs-item"><span class="ic c">✓</span>Vous restez compétitif : le temps gagné va à l'implémentation</div>
+          <div class="vs-item"><span class="ic c">✓</span>IA suisse, données hébergées en Suisse, conforme CSRD</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ICP -->
+<section class="sec" data-screen-label="07 Who" id="who">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">Pour qui</span>
+      <h2 class="sec-title">Conçu pour ceux qui <em>passent à l'action</em>.</h2>
+    </div>
+    <div class="icps">
+      <div class="icp rv">
+        <div class="icp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg></div>
+        <div class="icp-title">PME & Grandes entreprises</div>
+        <p class="icp-desc">Réduisez vos coûts RSE et alignez-vous CSRD sans cabinet ni surcharge pour vos équipes.</p>
+      </div>
+      <div class="icp rv">
+        <div class="icp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+        <div class="icp-title">Startups & consultants durables</div>
+        <p class="icp-desc">Rejoignez Greenby Partner+ et accédez aux entreprises qui cherchent activement votre solution.</p>
+      </div>
+      <div class="icp rv">
+        <div class="icp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg></div>
+        <div class="icp-title">Écosystèmes d'innovation</div>
+        <p class="icp-desc">Outillez vos programmes d'accélération avec une plateforme IA dédiée à l'impact durable.</p>
+      </div>
+      <div class="icp rv">
+        <div class="icp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 4 4 6-6"/></svg></div>
+        <div class="icp-title">Investisseurs & Business Angels</div>
+        <p class="icp-desc">Sourcez et scorez des projets à fort impact grâce à nos données carbone qualifiées.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" data-screen-label="08 FAQ" id="faq">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-eyebrow">FAQ</span>
+      <h2 class="sec-title">Les questions qu'on<br/>nous pose <em>souvent</em>.</h2>
+    </div>
+    <div class="faq-grid">
+      <div class="faq rv"><details><summary>Greenby est-il conforme CSRD / ESRS ?<span class="pls"></span></summary><p>Oui. Notre méthodologie s'appuie sur GHG Protocol, ISO 14064 et les standards ESRS (E1 notamment). Les exports peuvent être joints à votre rapport de durabilité et audités par un commissaire externe.</p></details></div>
+      <div class="faq rv"><details><summary>Combien de temps pour un premier bilan carbone ?<span class="pls"></span></summary><p>Entre 2 et 4 semaines selon la qualité de vos données comptables. Greenby automatise 80% du travail de collecte et de mapping. Une équipe de 5 à 50 personnes obtient généralement son premier bilan en moins de 3 semaines.</p></details></div>
+      <div class="faq rv"><details><summary>Mes données sont-elles hébergées en Suisse ?<span class="pls"></span></summary><p>Oui. Toutes les données sont stockées en Suisse, chiffrées au repos et en transit. Nous ne vendons et n'entraînons aucun modèle sur vos données clients. Conformité nLPD et RGPD.</p></details></div>
+      <div class="faq rv"><details><summary>Quels connecteurs comptables sont supportés ?<span class="pls"></span></summary><p>Bexio, Abacus, Sage, SAP, Pennylane, QuickBooks, plus import CSV/Excel. Des connecteurs Odoo, NetSuite et API personnalisées sont disponibles pour les plans Enterprise.</p></details></div>
+      <div class="faq rv"><details><summary>Combien ça coûte ?<span class="pls"></span></summary><p>Pricing sur-mesure selon taille et périmètre. Notre offre se situe typiquement entre 1/5 et 1/10 du coût d'un audit ESG classique. Réservez une démo pour obtenir un devis aligné sur votre cas d'usage.</p></details></div>
+      <div class="faq rv"><details><summary>Je suis une startup durable — comment rejoindre ?<span class="pls"></span></summary><p>Greenby Partner+ est notre programme pour les solutions durables. Inscription gratuite, scoring par nos agents IA, puis mise en relation qualifiée avec les entreprises qui cherchent votre solution.</p></details></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" data-screen-label="09 Final" id="demo">
+  <div class="wrap">
+    <div class="final-box rv">
+      <div class="final-orb"></div>
+      <span class="sec-eyebrow">Bêta privée</span>
+      <h2 style="margin-top:18px">Débloquez votre démo<br/>en <em>avant-première</em>.</h2>
+      <p>30 minutes. Un cas d'usage réel sur vos données. Un plan d'action priorisé à la fin de l'appel.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#" style="padding:16px 26px;font-size:15.5px">
+          Réserver ma démo
+          <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a class="btn btn-outline" href="#" style="padding:16px 26px;font-size:15.5px">Parler à un expert</a>
+      </div>
+      <div class="hero-meta" style="justify-content:center;margin-top:28px">
+        <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Sans engagement</span>
+        <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Réponse en 24h</span>
+        <span class="it"><span class="check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6L9 17l-5-5"/></svg></span>Remise pionniers -30%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <div class="logo" style="margin-bottom:14px">
+          <span class="logo-mark" style="width:24px;height:24px">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222 148" fill="currentColor" aria-hidden="true">
+              <path d="M110.375,137.927c-10.739,6.154-23.191,9.659-36.457,9.659C33.243,147.586.25,114.593.25,73.918S33.243.25,73.918.25c8.437,0,16.527,1.406,24.067,4.015v.02c.143.835.224,5.38-7.886,23.904-3.138,7.153-7.5,16.384-13.552,28.285-.244.469-.469.958-.693,1.427-25.187,51.985,31.199,78.518,34.521,80.026Z" opacity=".85"/>
+              <path d="M221.397,74.061c0,40.696-32.972,73.668-73.668,73.668-13.429,0-26.023-3.607-36.864-9.883,3.974-1.997,42.815-22.62,42.081-67.371-.55-32.055-25.738-51.191-41.837-60.137-.061-.041-.122-.081-.163-.102C121.766,3.979,134.34.393,147.728.393c40.696,0,73.668,32.993,73.668,73.668Z" opacity=".95"/>
+              <path d="M152.945,70.474c.734,44.751-38.108,65.374-42.081,67.371-.102.061-.204.122-.326.183-3.322-1.508-59.709-28.041-34.521-80.026.224-.469.449-.958.693-1.427,6.052-11.901,10.414-21.132,13.552-28.285,8.111-18.524,8.029-23.068,7.886-23.904,1.426.469,2.832,1.019,4.218,1.589.448.204.917.428,1.406.652.407.183.815.387,1.263.611.326.163.632.306.978.489.652.326,1.366.693,2.079,1.06.367.204.734.387,1.121.591.367.204.754.428,1.141.632.041.02.101.061.163.102,16.099,8.946,41.287,28.082,41.837,60.137Z" fill="#fff" opacity=".6"/>
+            </svg>
+          </span>
+          Greenby
+        </div>
+        <p style="color:var(--fg-2);max-width:280px;font-size:13.5px;line-height:1.55">Le copilote IA de la durabilité. Conçu en Suisse, pour les équipes qui passent à l'action.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Plateforme</h4>
+        <a href="#agents">Conseiller RSE</a>
+        <a href="#agents">Tracker CO₂</a>
+        <a href="#agents">Networker</a>
+        <a href="#">API & Connecteurs</a>
+      </div>
+      <div class="foot-col">
+        <h4>Entreprise</h4>
+        <a href="#">À propos</a>
+        <a href="#">Partner+</a>
+        <a href="#">Sécurité</a>
+        <a href="#">Presse</a>
+      </div>
+      <div class="foot-col">
+        <h4>Ressources</h4>
+        <a href="#">Guide CSRD</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+        <a href="#">Statut</a>
+      </div>
+    </div>
+    <div class="foot-bar">
+      <span>© 2026 GREENBY SA · TOUS DROITS RÉSERVÉS</span>
+      <span class="swiss-pill">🇨🇭 Made in Switzerland</span>
+      <span>PRIVACY · TERMS · DPA</span>
+    </div>
+  </div>
+</footer>
+
+<!-- TWEAKS -->
+<div class="tweaks" id="tweaks">
+  <h5>Tweaks</h5>
+  <div class="tweak-row"><span>Teinte d'accent</span><input type="range" id="tw-hue" min="100" max="170" value="140" /></div>
+  <div class="tweak-row"><span>Intensité globe</span><input type="range" id="tw-glow" min="0" max="100" value="70" /></div>
+  <div class="tweak-row"><span>Vitesse rotation</span><input type="range" id="tw-speed" min="0" max="200" value="100" /></div>
+  <div class="tweak-row"><span>Grain ambiance</span><input type="checkbox" id="tw-grain" checked /></div>
+  <div class="tweak-row"><span>Compact nav</span><input type="checkbox" id="tw-compact" /></div>
+</div>
+
+<script type="application/json" id="tweak-defaults">
+/*EDITMODE-BEGIN*/{
+  "hue": 140,
+  "glow": 75,
+  "speed": 70,
+  "grain": true,
+  "compact": false
+}/*EDITMODE-END*/
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ============== GLOBE 3D : real continents + drag ============== */
+const canvas = document.getElementById('globe-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+camera.position.set(0, 0.2, 5.4);
+
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+function resize(){
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if(canvas.width !== w*renderer.getPixelRatio() || canvas.height !== h*renderer.getPixelRatio()){
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+}
+resize();
+window.addEventListener('resize', resize);
+
+const globe = new THREE.Group();
+globe.rotation.z = 0.3;
+scene.add(globe);
+
+const R = 1.55;
+
+/* ---- Build land mask from equirectangular SVG of world continents ---- */
+// Simplified continents as SVG path strings in equirectangular (lat [-90..90], lng [-180..180]) → pixel space (2048x1024)
+// We draw a low-poly world map into a canvas, then read its pixels as a land mask.
+function buildLandMask(){
+  const W = 1024, H = 512;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+
+  // Continent polygons — approximate, equirectangular (lng+180)/360*W, (90-lat)/180*H
+  // Tuples of [lat, lng] vertices.
+  const polys = [
+    // North America
+    [[71,-156],[70,-130],[60,-141],[59,-135],[55,-131],[48,-124],[40,-124],[32,-117],[23,-110],[18,-95],[25,-97],[30,-89],[29,-81],[25,-80],[30,-80],[36,-76],[44,-66],[47,-60],[52,-56],[56,-60],[60,-64],[63,-77],[62,-95],[68,-82],[70,-95],[74,-95],[73,-110],[74,-120],[70,-145]],
+    // Greenland
+    [[83,-30],[83,-55],[77,-70],[70,-55],[60,-43],[65,-35],[70,-22],[78,-18]],
+    // South America
+    [[12,-72],[10,-61],[7,-55],[5,-52],[1,-50],[-5,-35],[-10,-35],[-23,-40],[-33,-52],[-40,-62],[-53,-68],[-55,-70],[-50,-74],[-40,-73],[-18,-71],[-5,-81],[5,-77],[10,-75]],
+    // Africa
+    [[37,-9],[35,10],[32,22],[31,32],[22,36],[13,43],[11,51],[2,46],[-5,40],[-15,40],[-25,33],[-34,20],[-34,18],[-22,14],[-10,13],[0,9],[5,-3],[10,-13],[15,-17],[20,-17],[30,-10]],
+    // Europe
+    [[71,28],[70,20],[63,5],[58,-1],[58,-8],[52,-10],[50,-5],[45,-9],[41,-9],[36,-6],[37,0],[40,15],[37,23],[41,28],[45,38],[55,40],[65,45],[69,33]],
+    // Asia
+    [[77,100],[73,140],[72,150],[65,180],[60,170],[55,158],[53,142],[46,141],[40,140],[35,140],[34,131],[30,121],[22,114],[22,108],[11,109],[10,105],[6,100],[8,98],[13,98],[16,94],[22,90],[22,91],[25,90],[23,68],[25,65],[25,55],[12,45],[30,50],[40,50],[43,47],[50,55],[55,70],[65,80],[72,90]],
+    // Indonesia bits
+    [[-8,95],[-10,105],[-8,118],[-3,128],[-4,140],[-10,140],[-10,120],[-8,110]],
+    // Australia
+    [[-11,130],[-12,136],[-16,140],[-20,148],[-28,153],[-37,149],[-38,142],[-35,138],[-32,133],[-33,123],[-35,117],[-30,114],[-22,114],[-16,122],[-13,126]],
+    // New Zealand
+    [[-36,174],[-41,174],[-46,167],[-43,170]],
+    // Japan
+    [[45,141],[43,145],[38,141],[34,136],[33,130],[36,133],[40,140]],
+    // UK
+    [[58,-5],[56,-2],[52,0],[50,-5],[52,-5],[55,-6],[58,-8]],
+    // Madagascar
+    [[-12,49],[-16,49],[-22,48],[-25,45],[-21,43],[-15,44]],
+    // Iceland
+    [[66,-14],[66,-23],[63,-23],[63,-14]],
+    // Philippines
+    [[18,121],[14,124],[9,126],[7,122],[11,120],[15,120]],
+    // Cuba/Caribbean
+    [[23,-83],[21,-77],[20,-74],[23,-80]],
+  ];
+
+  const latLngToPx = (lat,lng) => [((lng+180)/360)*W, ((90-lat)/180)*H];
+
+  ctx.fillStyle = '#fff';
+  polys.forEach(p=>{
+    ctx.beginPath();
+    p.forEach(([lat,lng], i)=>{
+      const [x,y] = latLngToPx(lat,lng);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  return ctx.getImageData(0,0,W,H);
+}
+
+const mask = buildLandMask();
+function isLand(lat, lng){
+  const W = mask.width, H = mask.height;
+  const x = Math.floor(((lng+180)/360)*W) % W;
+  const y = Math.floor(((90-lat)/180)*H);
+  if(y<0||y>=H) return false;
+  const idx = (y*W + x)*4;
+  return mask.data[idx] > 128;
+}
+
+/* ---- Generate points on sphere: dense on land, sparse on sea ---- */
+const landPoints = [];
+const seaPoints = [];
+const cityPoints = [];
+
+// Point density
+const stepLat = 1.5;
+for(let lat=-82; lat<=82; lat+=stepLat){
+  const phi = (90-lat)*Math.PI/180;
+  const circ = Math.sin(phi);
+  const lngStep = 1.5 / Math.max(circ, 0.12);
+  for(let lng=-180; lng<180; lng+=lngStep){
+    const theta = (lng+180)*Math.PI/180;
+    const x = -R*Math.sin(phi)*Math.cos(theta);
+    const z = R*Math.sin(phi)*Math.sin(theta);
+    const y = R*Math.cos(phi);
+    if(isLand(lat,lng)){
+      landPoints.push(x,y,z);
+      // Some land points become "city lights"
+      if(Math.random() < 0.025) cityPoints.push(x,y,z);
+    } else {
+      seaPoints.push(x,y,z);
+    }
+  }
+}
+
+/* Land dots (bright green) */
+function makeDotTexture(){
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.25,'rgba(200,255,170,0.9)');
+  g.addColorStop(0.6,'rgba(80,220,100,0.4)');
+  g.addColorStop(1,'rgba(0,120,60,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,64,64);
+  const tx = new THREE.CanvasTexture(c);
+  tx.needsUpdate = true;
+  return tx;
+}
+
+const landGeom = new THREE.BufferGeometry();
+landGeom.setAttribute('position', new THREE.Float32BufferAttribute(landPoints, 3));
+const landMat = new THREE.PointsMaterial({
+  color: 0x9effb0,
+  size: 0.028,
+  transparent:true,
+  opacity:0.95,
+  sizeAttenuation:true,
+  depthWrite:false,
+});
+const land = new THREE.Points(landGeom, landMat);
+globe.add(land);
+
+/* Sea dots */
+const seaGeom = new THREE.BufferGeometry();
+seaGeom.setAttribute('position', new THREE.Float32BufferAttribute(seaPoints, 3));
+const seaMat = new THREE.PointsMaterial({
+  color: 0x1d3b2f,
+  size: 0.011,
+  transparent:true,
+  opacity:0.45,
+  sizeAttenuation:true,
+  depthWrite:false,
+});
+const sea = new THREE.Points(seaGeom, seaMat);
+globe.add(sea);
+
+/* City lights : lit cities inside continents */
+const cityGeom = new THREE.BufferGeometry();
+cityGeom.setAttribute('position', new THREE.Float32BufferAttribute(cityPoints, 3));
+const cityMat = new THREE.PointsMaterial({
+  map: makeDotTexture(),
+  color: 0xc6ff88,
+  size: 0.09,
+  transparent:true,
+  opacity:0.9,
+  sizeAttenuation:true,
+  depthWrite:false,
+  blending:THREE.AdditiveBlending,
+});
+const cities = new THREE.Points(cityGeom, cityMat);
+globe.add(cities);
+
+/* Inner sphere to hide back-face points & give volume */
+const innerGeom = new THREE.SphereGeometry(R*0.98, 64, 64);
+const innerMat = new THREE.MeshBasicMaterial({ color: 0x0a1410, transparent:true, opacity:0.98 });
+const inner = new THREE.Mesh(innerGeom, innerMat);
+globe.add(inner);
+
+/* Atmosphere glow */
+const atmosGeom = new THREE.SphereGeometry(R*1.06, 64, 64);
+const atmosMat = new THREE.ShaderMaterial({
+  transparent:true, side:THREE.BackSide, depthWrite:false, blending:THREE.AdditiveBlending,
+  uniforms:{ uColor:{ value: new THREE.Color(0x4fe07a) }, uIntensity:{ value: 0.75 }},
+  vertexShader:`varying vec3 vNormal; void main(){ vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.);}`,
+  fragmentShader:`varying vec3 vNormal; uniform vec3 uColor; uniform float uIntensity; void main(){ float i = pow(0.78 - dot(vNormal, vec3(0,0,1.)), 3.0); gl_FragColor = vec4(uColor, 1.0) * i * uIntensity; }`
+});
+const atmos = new THREE.Mesh(atmosGeom, atmosMat);
+globe.add(atmos);
+
+/* ============== FLYING CONNECTIONS ============== */
+const hotspots = [
+  {lat:46.8, lng:8.2},  {lat:48.85, lng:2.35}, {lat:52.52, lng:13.40},
+  {lat:51.50, lng:-0.12},{lat:40.71, lng:-74.0},{lat:37.77, lng:-122.4},
+  {lat:1.35, lng:103.82},{lat:-23.55, lng:-46.63},{lat:35.68, lng:139.69},
+  {lat:-33.86, lng:151.20},{lat:19.04, lng:72.87},{lat:25.27, lng:55.29},
+  {lat:-26.20, lng:28.04},{lat:59.32, lng:18.06},{lat:43.65, lng:-79.38},
+  {lat:22.32, lng:114.17},
+];
+function llToVec(lat,lng, r=R){
+  const phi = (90-lat)*Math.PI/180;
+  const theta = (lng+180)*Math.PI/180;
+  return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(theta));
+}
+
+/* Hotspot dots */
+hotspots.forEach(h=>{
+  const pos = llToVec(h.lat, h.lng, R*1.01);
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 12), new THREE.MeshBasicMaterial({color:0xe6ffd2, transparent:true, opacity:0.95}));
+  dot.position.copy(pos); globe.add(dot);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 16),
+    new THREE.MeshBasicMaterial({color:0x4fe07a, transparent:true, opacity:0.4, blending:THREE.AdditiveBlending, depthWrite:false}));
+  halo.position.copy(pos); globe.add(halo);
+});
+
+const arcs = [];
+const MAX_ARCS = 8;
+function makeArc(){
+  const a = hotspots[Math.floor(Math.random()*hotspots.length)];
+  let b; do { b = hotspots[Math.floor(Math.random()*hotspots.length)]; } while (b === a);
+  const pA = llToVec(a.lat, a.lng, R*1.01);
+  const pB = llToVec(b.lat, b.lng, R*1.01);
+  const mid = pA.clone().add(pB).multiplyScalar(0.5);
+  const dist = pA.distanceTo(pB);
+  const lift = 1 + dist*0.35;
+  mid.normalize().multiplyScalar(R * lift);
+  const curve = new THREE.QuadraticBezierCurve3(pA, mid, pB);
+  const points = curve.getPoints(64);
+  const posArr = []; points.forEach(p=>posArr.push(p.x,p.y,p.z));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+  const m = new THREE.LineBasicMaterial({ color:0x7bff9b, transparent:true, opacity:0.0 });
+  const line = new THREE.Line(g, m);
+  globe.add(line);
+  const headMat = new THREE.SpriteMaterial({ map: makeDotTexture(), color:0xffffff, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false });
+  const head = new THREE.Sprite(headMat);
+  head.scale.setScalar(0.16);
+  globe.add(head);
+  return { line, mat:m, curve, head, headMat, t:0, speed: 0.0035 + Math.random()*0.004 };
+}
+for(let i=0;i<MAX_ARCS;i++){ const a = makeArc(); a.t = Math.random(); arcs.push(a); }
+
+/* Stars */
+const starPos = [];
+for(let i=0;i<600;i++){
+  const r = 40; const th = Math.random()*Math.PI*2; const ph = Math.acos(2*Math.random()-1);
+  starPos.push(r*Math.sin(ph)*Math.cos(th), r*Math.sin(ph)*Math.sin(th), r*Math.cos(ph));
+}
+const starGeom = new THREE.BufferGeometry();
+starGeom.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color:0x8da89a, size:0.04, sizeAttenuation:true, transparent:true, opacity:0.45, depthWrite:false });
+scene.add(new THREE.Points(starGeom, starMat));
+
+/* ============== INTERACTION: drag to rotate + inertia ============== */
+let drag = { active:false, x:0, y:0, vx:0, vy:0 };
+let rotY = 0, rotX = 0.25;
+let autoSpin = true;
+const AUTO_SPEED = 0.0025;
+
+canvas.style.cursor = 'grab';
+canvas.addEventListener('pointerdown', (e)=>{
+  drag.active = true; drag.x = e.clientX; drag.y = e.clientY;
+  drag.vx = 0; drag.vy = 0;
+  canvas.setPointerCapture?.(e.pointerId);
+  canvas.style.cursor = 'grabbing';
+});
+window.addEventListener('pointermove', (e)=>{
+  if(!drag.active) return;
+  const dx = e.clientX - drag.x; const dy = e.clientY - drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  drag.vx = dx * 0.005; drag.vy = dy * 0.005;
+  rotY += drag.vx; rotX += drag.vy;
+  rotX = Math.max(-1.2, Math.min(1.2, rotX));
+});
+window.addEventListener('pointerup', ()=>{
+  drag.active = false; canvas.style.cursor = 'grab';
+});
+
+/* State controlled by tweaks */
+let SPEED = 1;
+let GLOW = 0.75;
+
+/* Animate */
+const clock = new THREE.Clock();
+function tick(){
+  resize();
+  const t = clock.getElapsedTime();
+
+  if(drag.active){
+    // nothing
+  } else {
+    // inertia
+    rotY += drag.vx;
+    rotX += drag.vy;
+    drag.vx *= 0.94;
+    drag.vy *= 0.94;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    if(Math.abs(drag.vx) < 0.0002 && Math.abs(drag.vy) < 0.0002){
+      rotY += AUTO_SPEED * SPEED;
+    }
+  }
+
+  globe.rotation.y = rotY;
+  globe.rotation.x = rotX;
+
+  atmosMat.uniforms.uIntensity.value = GLOW;
+
+  // city pulse
+  cityMat.opacity = 0.75 + Math.sin(t*2)*0.15;
+
+  // arcs
+  arcs.forEach((a, idx) => {
+    a.t += a.speed * SPEED;
+    if(a.t > 1){
+      globe.remove(a.line); globe.remove(a.head);
+      a.line.geometry.dispose(); a.mat.dispose();
+      const n = makeArc(); n.t = 0; arcs[idx] = n; return;
+    }
+    const fadeIn = Math.min(a.t*4, 1);
+    const fadeOut = Math.min((1-a.t)*3, 1);
+    a.mat.opacity = 0.7 * Math.min(fadeIn, fadeOut);
+    const p = a.curve.getPoint(a.t);
+    a.head.position.copy(p);
+    a.headMat.opacity = Math.min(fadeIn, fadeOut);
+  });
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ============== REVEAL ============== */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target);} });
+},{threshold:0.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+/* ============== METRIC COUNTERS ============== */
+const counters = document.querySelectorAll('[data-target]');
+const cio = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el = e.target;
+      const target = +el.dataset.target;
+      const prefix = el.dataset.prefix || '';
+      const unit = el.querySelector('.u')?.outerHTML || '';
+      let n = 0;
+      const dur = 1600;
+      const start = performance.now();
+      function step(ts){
+        const k = Math.min(1, (ts-start)/dur);
+        const eased = 1 - Math.pow(1-k, 3);
+        n = Math.round(target*eased);
+        el.innerHTML = prefix + n + unit;
+        if(k<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      cio.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+counters.forEach(c=>cio.observe(c));
+
+/* ============== TWEAKS ============== */
+const defaults = JSON.parse(document.getElementById('tweak-defaults').textContent.replace(/\/\*EDITMODE-(BEGIN|END)\*\//g,'').trim());
+let state = {...defaults};
+
+function applyTweaks(){
+  const h = state.hue;
+  document.documentElement.style.setProperty('--g-deep', `oklch(0.58 0.19 ${h})`);
+  document.documentElement.style.setProperty('--g-mid',  `oklch(0.78 0.22 ${h})`);
+  document.documentElement.style.setProperty('--g-light',`oklch(0.90 0.20 ${h-5})`);
+  document.documentElement.style.setProperty('--g-glow', `oklch(0.82 0.24 ${h})`);
+  const col = new THREE.Color().setHSL((h-20)/360, 0.75, 0.55);
+  atmosMat.uniforms.uColor.value.copy(col);
+  landMat.color.copy(col).lerp(new THREE.Color(0xffffff), 0.35);
+  seaMat.color.copy(col).multiplyScalar(0.28);
+  cityMat.color.copy(col).lerp(new THREE.Color(0xffffff), 0.45);
+
+  GLOW = state.glow/100;
+  SPEED = state.speed/100;
+
+  document.body.style.setProperty('--grain-opacity', state.grain ? '1' : '0');
+  if(!state.grain){
+    document.body.classList.add('no-grain');
+  } else {
+    document.body.classList.remove('no-grain');
+  }
+
+  document.querySelector('.nav-inner').style.padding = state.compact ? '6px 10px 6px 16px' : '10px 12px 10px 20px';
+}
+
+// CSS for no-grain
+const noGrainStyle = document.createElement('style');
+noGrainStyle.textContent = '.no-grain::after{opacity:0 !important}';
+document.head.appendChild(noGrainStyle);
+
+/* Bind tweaks UI */
+const twHue = document.getElementById('tw-hue');
+const twGlow = document.getElementById('tw-glow');
+const twSpeed = document.getElementById('tw-speed');
+const twGrain = document.getElementById('tw-grain');
+const twCompact = document.getElementById('tw-compact');
+function syncUI(){
+  twHue.value = state.hue;
+  twGlow.value = state.glow;
+  twSpeed.value = state.speed;
+  twGrain.checked = !!state.grain;
+  twCompact.checked = !!state.compact;
+}
+syncUI();
+applyTweaks();
+
+function update(patch){
+  state = {...state, ...patch};
+  applyTweaks();
+  window.parent?.postMessage({type:'__edit_mode_set_keys', edits:patch}, '*');
+}
+twHue.oninput = e => update({hue:+e.target.value});
+twGlow.oninput = e => update({glow:+e.target.value});
+twSpeed.oninput = e => update({speed:+e.target.value});
+twGrain.onchange = e => update({grain:e.target.checked});
+twCompact.onchange = e => update({compact:e.target.checked});
+
+/* Edit mode protocol */
+window.addEventListener('message', (e)=>{
+  if(e.data?.type === '__activate_edit_mode') document.getElementById('tweaks').classList.add('on');
+  if(e.data?.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('on');
+});
+window.parent?.postMessage({type:'__edit_mode_available'}, '*');
+
+</script>
+</body>
+</html>
