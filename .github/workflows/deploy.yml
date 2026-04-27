@@ -45,7 +45,18 @@ jobs:
           fi
           name=$(jq -r '.name' /tmp/proj.json)
           account=$(jq -r '.accountId' /tmp/proj.json)
-          echo "Project OK: name=$name accountId=$account"
+          fw=$(jq -r '.framework' /tmp/proj.json)
+          echo "Project OK: name=$name accountId=$account framework=$fw"
+
+      - name: Force framework=null (static site, no Next.js)
+        run: |
+          curl -sS -X PATCH \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"framework":null,"buildCommand":null,"outputDirectory":null,"installCommand":null,"devCommand":null}' \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" \
+            -o /tmp/patched.json -w 'HTTP %{http_code}\n'
+          jq '{name, framework, buildCommand, outputDirectory, installCommand}' /tmp/patched.json
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -53,13 +64,10 @@ jobs:
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
 
-      - name: Build
-        run: vercel build --prod --token=$VERCEL_TOKEN
-
       - name: Deploy
         id: deploy
         run: |
-          url=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+          url=$(vercel deploy --prod --token=$VERCEL_TOKEN)
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
 
