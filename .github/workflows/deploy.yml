@@ -23,6 +23,30 @@ jobs:
         with:
           node-version: 22
 
+      - name: Sanity check secrets
+        run: |
+          fail=0
+          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!v}" ]; then echo "::error::Secret $v is empty"; fail=1
+            else echo "$v is set (length=${#}, prefix=$(echo "${!v}" | cut -c1-4))"; fi
+          done
+          [ "$fail" = "1" ] && exit 1 || true
+
+      - name: Verify token via Vercel API
+        run: |
+          code=$(curl -sS -o /tmp/proj.json -w '%{http_code}' \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID")
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Vercel API rejected the request. Body:"
+            cat /tmp/proj.json
+            exit 1
+          fi
+          name=$(jq -r '.name' /tmp/proj.json)
+          account=$(jq -r '.accountId' /tmp/proj.json)
+          echo "Project OK: name=$name accountId=$account"
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
@@ -40,6 +64,7 @@ jobs:
           echo "Deployed to: $url"
 
       - name: Summary
+        if: success()
         run: |
           echo "### Deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "${{ steps.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
