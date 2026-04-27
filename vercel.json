@@ -2,11 +2,7 @@
   "framework": null,
   "buildCommand": null,
   "installCommand": null,
-  "outputDirectory": ".",
   "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/Greenby.html" }
-  ],
   "headers": [
     {
       "source": "/assets/(.*)",
